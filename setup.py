@@ -2,14 +2,14 @@ from distutils.core import setup
 setup(
   name = 'cartpy',         # How you named your package folder (MyLib)
   packages = ['cartpy'],   # Chose the same as "name"
-  version = '0.0.9',      # Start with a small number and increase it with every change you make
+  version = '0.1.1',      # Start with a small number and increase it with every change you make
   license='MIT',        # Chose a license from here: https://help.github.com/articles/licensing-a-repository
   description = 'Cartpy offers an easy way to access the IBGE cartographic databases',   # Give a short description about your library
   author = 'Lucas Cavalcanti Rodrigues',                   # Type in your name
   author_email = 'lucas.ecomg@gmail.com',      # Type in your E-Mail
   url = 'https://github.com/lucascr91/cartpy',   # Provide either the link to your github or to your website
-  download_url = 'https://github.com/lucascr91/cartpy/archive/v_0.0.9.tar.gz', 
-  package_data={'cartpy': ['counties_1872_1991.csv'],
+  download_url = 'https://github.com/lucascr91/cartpy/archive/v_0.1.1.tar.gz', 
+  package_data={'cartpy': ['counties_1872_1991.csv']},
   include_package_data=True,
   keywords = ['Brazil', 'municipality', 'geodata'],   # Keywords that define your package best
   install_requires=[            # I get to this in a second
