@@ -2,13 +2,13 @@ from distutils.core import setup
 setup(
   name = 'cartpy',         # How you named your package folder (MyLib)
   packages = ['cartpy'],   # Chose the same as "name"
-  version = '0.2.2',      # Start with a small number and increase it with every change you make
+  version = '0.2.3',      # Start with a small number and increase it with every change you make
   license='MIT',        # Chose a license from here: https://help.github.com/articles/licensing-a-repository
   description = 'Cartpy offers an easy way to access the IBGE cartographic databases',   # Give a short description about your library
   author = 'Lucas Cavalcanti Rodrigues',                   # Type in your name
   author_email = 'lucas.ecomg@gmail.com',      # Type in your E-Mail
   url = 'https://github.com/lucascr91/cartpy',   # Provide either the link to your github or to your website
-  download_url = 'https://github.com/lucascr91/cartpy/archive/v_0.2.2.tar.gz', 
+  download_url = 'https://github.com/lucascr91/cartpy/archive/v_0.2.3.tar.gz', 
   package_dir={'cartpy': 'cartpy'},
   package_data={'cartpy': ['data/*.csv']},
   include_package_data=True,
