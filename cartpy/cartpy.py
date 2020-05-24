@@ -1,6 +1,9 @@
 import pandas as pd
 import numpy as np
 from fuzzywuzzy import process
+import pkg_resources
+
+DATA_PATH = pkg_resources.resource_filename('cartpy', 'data/')
 
 counties=pd.read_csv('counties_1872_1991.csv')
 
