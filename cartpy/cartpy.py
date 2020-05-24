@@ -2,11 +2,15 @@ import pandas as pd
 import numpy as np
 from fuzzywuzzy import process
 import pkg_resources
+import geopandas as gpd
+from shapely.wkt import loads
+import matplotlib.pyplot as plt
 
 DATA_PATH = pkg_resources.resource_filename('cartpy', 'data/')
 DB_FILE = pkg_resources.resource_filename('cartpy', 'data/counties_1872_1991.csv')
 
 counties=pd.read_csv(DB_FILE)
+counties['estado_code']=pd.to_numeric(counties['estado_code'],errors='coerce')
 
 def name_to_code(name,state,year):
     df=counties[(counties['ano']==year)&(counties['estado']==state)]
@@ -72,14 +76,103 @@ class Municipio:
                 print("There are more than one county with this informations")
             else:
                 return data_code.codigo[0]
+
+    #List all names that share the same code
+    def all_names(self,code):
+        df=self.data
+        set_names=set([k for k in df[df.codigo==code].nome])
+        for i in set_names:
+            print(i)
+
+    #countie map
+    def get_map(self,state,year):
+        df=self.data
+        user_year=Year(year=year)
+        sf4=user_year.get_geodata(state=state,county=self.name)
+        sf4.plot(figsize=(20,10), color='royalblue', edgecolor='k')
+        plt.title('{}-{}\n{}'.format(self.name,state,year), fontsize=20)
+        plt.show()
+
     #methods to be create                
-    # def all_names(self)
-    # def plot(self)
-    # def get_geodata(self)
+    # def compare
+
+class Year:
+    def __init__(self,year,data=counties):
+        self.year=year
+        self.data=data
+    # get geopandas dataframe
+    def get_geodata(self,state='all',county='all'):
+        df=self.data
+        df=df[df['ano']==self.year]
+        #user entry two strings
+        if (isinstance(state,str)) & (isinstance(county,str)):
+            lista_states=[k for k in df.estado.unique()]+['all']
+            lista_counties=[k for k in df.nome.unique()]+['all']
+            if state not in lista_states:
+                raise Exception("{} is an invalid name for state".format(state))
+            elif county not in lista_counties:
+                raise Exception("{} is an invalid name for a county. Use search() method to find the rightly spelled countie's name ".format(county))
+            elif state=='all':
+                sf_data = gpd.GeoDataFrame(df)
+                sf_data['geometry'] = sf_data['geometry'].apply(lambda x: loads(x))
+                return sf_data
+            elif (state!='all') & (county=='all'):
+                sf_data = gpd.GeoDataFrame(df[df['estado']==state])
+                sf_data['geometry'] = sf_data['geometry'].apply(lambda x: loads(x))
+                return sf_data
+            elif (state!='all') & (county!='all'):
+                sf_data = gpd.GeoDataFrame(df[(df['estado']==state)&(df['nome']==county)])
+                sf_data['geometry'] = sf_data['geometry'].apply(lambda x: loads(x))
+                return sf_data
+        #user entry state code and countie string
+        elif (isinstance(state,int)) & (isinstance(county,str)):
+            lista_states=[k for k in df.estado_code.unique()]
+            lista_counties=[k for k in df.nome.unique()]+['all']
+            if state not in lista_states:
+                raise Exception("{} is an invalid code for state".format(state))
+            elif county not in lista_counties:
+                raise Exception("{} is an invalid name for a county. Use search() method to find the rightly spelled countie's name ".format(county))
+            elif county=='all':
+                sf_data = gpd.GeoDataFrame(df[df['estado_code']==state])
+                sf_data['geometry'] = sf_data['geometry'].apply(lambda x: loads(x))
+                return sf_data
+            elif county!='all':
+                sf_data = gpd.GeoDataFrame(df[(df['estado_code']==state)&(df['nome']==county)])
+                sf_data['geometry'] = sf_data['geometry'].apply(lambda x: loads(x))
+                return sf_data
+        #user entry state string and countie code
+        elif (isinstance(state,str)) & (isinstance(county,int)):
+            lista_states=[k for k in df.estado.unique()]+['all']
+            lista_counties=[k for k in df.codigo.unique()]
+            if state not in lista_states:
+                raise Exception("{} is an invalid name for state".format(state))
+            elif county not in lista_counties:
+                raise Exception("{} is an invalid name for a county. Use search() method to find the rightly spelled countie's name ".format(county))
+            elif state=='all':
+                sf_data = gpd.GeoDataFrame(df)
+                sf_data['geometry'] = sf_data['geometry'].apply(lambda x: loads(x))
+                return sf_data
+            elif state!='all':
+                sf_data = gpd.GeoDataFrame(df[(df['estado']==state)&(df['codigo']==county)])
+                sf_data['geometry'] = sf_data['geometry'].apply(lambda x: loads(x))
+                return sf_data
+        #user entry state code and countie code
+        elif (isinstance(state,int)) & (isinstance(county,int)):
+            lista_states=[k for k in df.estado_code.unique()]
+            lista_counties=[k for k in df.codigo.unique()]
+            if state not in lista_states:
+                raise Exception("{} is an invalid name for state".format(state))
+            elif county not in lista_counties:
+                raise Exception("{} is an invalid name for a county. Use search() method to find the rightly spelled countie's name ".format(county))
+            else:
+                sf_data = gpd.GeoDataFrame(df[(df['estado_code']==state)&(df['codigo']==county)])
+                sf_data['geometry'] = sf_data['geometry'].apply(lambda x: loads(x))
+                return sf_data
 
 
 if __name__ == '__main__':
     #self-test code
-    jf=Municipio('Juiz de Fora')
-    # print(    jf.search(state='MG',year=1991))
-    print(jf.get_code(year=1991,state='MG'))
+    jf=Municipio('Barretos')
+    # print(jf.search(state='SP',year=1991))
+    jf_code=jf.get_code(year=1991,state='SP')
+    print(jf.all_names(code=jf_code))
