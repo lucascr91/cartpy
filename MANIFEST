@@ -3,4 +3,3 @@ setup.cfg
 setup.py
 cartpy/__init__.py
 cartpy/cartpy.py
-cartpy/data/counties_1872_1991.csv
