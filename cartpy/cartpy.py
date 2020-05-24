@@ -1,8 +1,12 @@
 import pandas as pd
 import numpy as np
 from fuzzywuzzy import process
+import pkg_resources
 
-counties=pd.read_csv('counties_1872_1991.csv')
+DATA_PATH = pkg_resources.resource_filename('cartpy', 'data/')
+DB_FILE = pkg_resources.resource_filename('cartpy', 'data/counties_1872_1991.csv')
+
+counties=pd.read_csv(DB_FILE)
 
 def name_to_code(name,state,year):
     df=counties[(counties['ano']==year)&(counties['estado']==state)]
