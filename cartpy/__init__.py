@@ -1,2 +1,2 @@
-from cartpy.data_path import *
+import cartpy.data_path
 from cartpy.cartpy import Municipio
