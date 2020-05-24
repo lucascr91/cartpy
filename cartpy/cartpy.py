@@ -5,7 +5,7 @@ import pkg_resources
 
 DATA_PATH = pkg_resources.resource_filename('cartpy', 'data/')
 
-counties=pd.read_csv('counties_1872_1991.csv')
+counties=pd.read_csv('data/counties_1872_1991.csv')
 
 def name_to_code(name,state,year):
     df=counties[(counties['ano']==year)&(counties['estado']==state)]
