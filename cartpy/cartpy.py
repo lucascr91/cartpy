@@ -5,6 +5,7 @@ import pkg_resources
 import geopandas as gpd
 from shapely.wkt import loads
 import matplotlib.pyplot as plt
+from descartes import PolygonPatch
 
 DATA_PATH = pkg_resources.resource_filename('cartpy', 'data/')
 DB_FILE = pkg_resources.resource_filename('cartpy', 'data/counties_1872_1991.csv')
@@ -71,18 +72,29 @@ class Municipio:
         elif year not in lista_years:
             raise Exception("{} is an invalid entry for year".format(year))
         else:
-            data_code = df[(df['nome']==self.name)&(df['estado']==state)&(df['ano']==year)].reset_index()
+            try:
+                data_code = df[(df['nome']==self.name)&(df['estado']==state)&(df['ano']==year)].reset_index()
+            except:
+                print("This combination of countie, state and year doesn't exist")
             if data_code.shape[0]>1:
-                print("There are more than one county with this informations")
+                print("There are more than one county with this combination of countie, state and year")
             else:
                 return data_code.codigo[0]
 
     #List all names that share the same code
-    def all_names(self,code):
+    def all_names(self,state,year,show=True):
+        try:
+            mun_code=self.get_code(state=state,year=year)
+        except:
+            raise Exception("There is no {} in the state {} and the year {}. Use the search method or get_dictionary to find the right name".format(self.name,state,year))
         df=self.data
-        set_names=set([k for k in df[df.codigo==code].nome])
-        for i in set_names:
-            print(i)
+        cases_index=[k for k in df[df['codigo']==mun_code].index]
+        if show:
+            for i in cases_index:
+                print(df['ano'][i],': ',df['nome'][i])
+        else:
+            dict_nameyears={df['ano'][i]:df['nome'][i] for i in cases_index}
+            return dict_nameyears
 
     #countie map
     def get_map(self,state,year):
@@ -92,9 +104,27 @@ class Municipio:
         sf4.plot(figsize=(20,10), color='royalblue', edgecolor='k')
         plt.title('{}-{}\n{}'.format(self.name,state,year), fontsize=20)
         plt.show()
-
-    #methods to be create                
-    # def compare
+    #compare maps between years
+    def compare(self,years,state,fillcolor1='w',fillcolor2='r', edgecolor1='k', edgecolor2='r',size=(20,10)):
+        if (isinstance(years,list)) & (len(years)==2):
+            try:
+                mun_code=self.get_code(state=state,year=years[1])
+            except:
+                raise Exception("There is no {} in year {}. Use the search method or get_dictionary to find the right name".format(self.name,years[1]))
+            sf1=Year(years[0]).get_geodata(state=state,county=mun_code)
+            sf2=Year(years[1]).get_geodata(state=state,county=mun_code)
+            fig, ax = plt.subplots(figsize=size)
+            poly1= sf1.reset_index()['geometry'][0]
+            ax.add_patch(PolygonPatch(poly1, fc=fillcolor1, ec=edgecolor1, alpha=1, zorder=2,label=str(years[0])))
+            ax.axis('scaled')
+            poly2= sf2.reset_index()['geometry'][0]
+            ax.add_patch(PolygonPatch(poly2, fc=fillcolor2,ec=edgecolor2, alpha=0.3, zorder=2, label=str(years[1])))
+            ax.axis('scaled')
+            ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.05),
+                    fancybox=True, shadow=True, ncol=2)
+            plt.show()
+        else:
+            raise Exception("years must be a list with 2 elements")
 
 class Year:
     def __init__(self,year,data=counties):
@@ -125,7 +155,7 @@ class Year:
                 sf_data['geometry'] = sf_data['geometry'].apply(lambda x: loads(x))
                 return sf_data
         #user entry state code and countie string
-        elif (isinstance(state,int)) & (isinstance(county,str)):
+        elif (not isinstance(state,str)) & (isinstance(county,str)):
             lista_states=[k for k in df.estado_code.unique()]
             lista_counties=[k for k in df.nome.unique()]+['all']
             if state not in lista_states:
@@ -141,7 +171,7 @@ class Year:
                 sf_data['geometry'] = sf_data['geometry'].apply(lambda x: loads(x))
                 return sf_data
         #user entry state string and countie code
-        elif (isinstance(state,str)) & (isinstance(county,int)):
+        elif (isinstance(state,str)) & (not isinstance(county,str)):
             lista_states=[k for k in df.estado.unique()]+['all']
             lista_counties=[k for k in df.codigo.unique()]
             if state not in lista_states:
@@ -157,7 +187,7 @@ class Year:
                 sf_data['geometry'] = sf_data['geometry'].apply(lambda x: loads(x))
                 return sf_data
         #user entry state code and countie code
-        elif (isinstance(state,int)) & (isinstance(county,int)):
+        elif (not isinstance(state,str)) & (not isinstance(county,str)):
             lista_states=[k for k in df.estado_code.unique()]
             lista_counties=[k for k in df.codigo.unique()]
             if state not in lista_states:
@@ -168,11 +198,29 @@ class Year:
                 sf_data = gpd.GeoDataFrame(df[(df['estado_code']==state)&(df['codigo']==county)])
                 sf_data['geometry'] = sf_data['geometry'].apply(lambda x: loads(x))
                 return sf_data
+    #get dictionary of equivalences between base year and chosen year
+    def get_dictionary(self,year,state='all'):
+        base=self.get_geodata(state=state)
+        tocompare=Year(year).get_geodata(state=state)
+        new=base.set_index('codigo').join(tocompare.set_index('codigo'),lsuffix='_base')
+        new=new[~new['nome'].isna()]
+        dict_names={new['nome_base'][k]:new['nome'][k] for k in new.index}
 
+        return dict_names
+    #get list of all new counties between base year and chosen year
+    def get_newcounties(self,year,state='all'):
+        base=self.get_geodata(state=state)
+        tocompare=Year(year).get_geodata(state=state)
+        new=base.set_index('codigo').join(tocompare.set_index('codigo'),lsuffix='_base')
+        new=new[new['nome'].isna()]
+        list_names=[new['nome_base'][k] for k in new.index]
+
+        return list_names
 
 if __name__ == '__main__':
     #self-test code
-    jf=Municipio('Barretos')
+    jf=Municipio('Sao Carlos')
     # print(jf.search(state='SP',year=1991))
-    jf_code=jf.get_code(year=1991,state='SP')
-    print(jf.all_names(code=jf_code))
+    # jf_code=jf.get_code(year=1991,state='SP')
+    # print(jf.compare(years=[1872,1991], state='SP'))
+    jf.all_names(state='SP',year=1991)
