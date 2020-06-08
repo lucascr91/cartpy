@@ -4,7 +4,9 @@ Um pacote em python para acessar bases cartográficas do IBGE
 
 ![alt text](https://github.com/lucascr91/cartpy/blob/master/old_sp.jpg)
 
-O cartpy é uma ferramenta para facilitar o acesso às bases cartográficas do IBGE e às estatísticas históricas dos territórios dos municípios brasileiros. Abaixo seguem instruções de instalação e uso
+O cartpy é uma ferramenta para facilitar a análise da evolução territorial dos municípios brasileiros. O fco do pacote é sobre bases cartográficas mais antigas (1872-1991). Para um pacote que dá o acesso mais amplo às bases cartográficas do IBGE veja ([geobr](https://github.com/ipeaGIT/geobr)). 
+
+Abaixo seguem instruções de instalação e uso do cartpy
 
 ### 1- Instalação
 
@@ -186,4 +188,4 @@ mun.get_map(state='SP',year=1991)
 ![png](output_21_0.png)
 
 
-Essa é apenas a primeira versão do pacote, outras funcionalidades serão acrescentadas ao longo do tempo por mim e/ou pela comunidade de usuários
+Outras funções podem ser acessadas pelo método `dir()`

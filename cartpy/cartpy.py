@@ -120,8 +120,14 @@ class Municipio:
             poly2= sf2.reset_index()['geometry'][0]
             ax.add_patch(PolygonPatch(poly2, fc=fillcolor2,ec=edgecolor2, alpha=0.3, zorder=2, label=str(years[1])))
             ax.axis('scaled')
+            ax.spines['right'].set_visible(False)
+            ax.spines['top'].set_visible(False)
             ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.05),
                     fancybox=True, shadow=True, ncol=2)
+            
+            fig.savefig('/home/lucas/projects/grundrisse/6_figuren/images/thesis_chapter1_fig4.png', 
+            #dpi=1200, 
+            bbox_inches='tight')
             plt.show()
         else:
             raise Exception("years must be a list with 2 elements")
@@ -223,4 +229,4 @@ if __name__ == '__main__':
     # print(jf.search(state='SP',year=1991))
     # jf_code=jf.get_code(year=1991,state='SP')
     # print(jf.compare(years=[1872,1991], state='SP'))
-    jf.all_names(state='SP',year=1991)
+    jf.compare(years=[1900,1960],state='SP',size=(6,8))
